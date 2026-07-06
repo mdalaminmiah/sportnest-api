@@ -15,11 +15,23 @@ import { errorHandler } from './middleware/error.middleware.js';
 
 const app = express();
 
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+// Allowed frontend origins (comma-separated). The client normally reaches this
+// API same-origin via its reverse proxy, but we still allow direct browser
+// calls from these origins for flexibility.
+const ALLOWED_ORIGINS = (process.env.CLIENT_URL || 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
 
 app.use(
     cors({
-        origin: CLIENT_URL,
+        origin(origin, callback) {
+            // Allow same-origin/non-browser requests (no Origin header).
+            if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`Origin ${origin} not allowed by CORS`));
+        },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
