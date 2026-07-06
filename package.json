@@ -1,0 +1,29 @@
+{
+  "name": "sportnest-api",
+  "version": "1.0.0",
+  "description": "SportNest - Sports Facility Booking API (Express + MongoDB + JWT)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon --env-file=.env src/server.js",
+    "seed": "node --env-file=.env src/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@better-auth/mongo-adapter": "^1.6.11",
+    "bcrypt": "^6.0.0",
+    "better-auth": "^1.6.11",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
