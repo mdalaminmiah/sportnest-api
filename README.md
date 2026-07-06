@@ -4,10 +4,10 @@ RESTful backend for **SportNest**, a sports facility booking platform. Built wit
 **Express 5 + MongoDB (Mongoose)**, secured with **JWT in HTTPOnly cookies**, and
 using **Better Auth** for Google OAuth.
 
-## 🔗 Live URL
+## 🔗 Live Links
 
-- **Live API:** https://your-sportnest-api.vercel.app _(update after deployment)_
-- **Client Repository:** ../sportnest-client
+- **Live API:** https://sportnest-api.vercel.app
+- **Live Site:** https://sportnest-client-rho.vercel.app
 
 ## 🎯 Purpose
 
@@ -42,11 +42,9 @@ with authentication and owner-based authorization.
 npm install
 
 # Create .env (see .env.example)
-npm run seed     # optional: seed a demo owner + 8 facilities
+npm run seed     # optional: seed sample facilities into the database
 npm run dev      # start with nodemon
 ```
-
-Demo owner created by the seed: **demo@sportnest.com** / **Passw0rd**
 
 ### Environment Variables (`.env`)
 
@@ -69,7 +67,7 @@ stay first-party.
 2. Create an **OAuth 2.0 Client ID** (type: *Web application*).
 3. **Authorized redirect URIs** (note: the **client** origin, not the API):
    - `http://localhost:3000/api/auth/callback/google`
-   - `https://<your-client-domain>/api/auth/callback/google`
+   - `https://sportnest-client-rho.vercel.app/api/auth/callback/google`
 4. Copy the **Client ID** and **Client Secret** into your env
    (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`).
 5. Set `BETTER_AUTH_URL` **and** `CLIENT_URL` to your client origin.
@@ -88,15 +86,15 @@ cross-site CORS).
 
 ### API environment variables (Vercel → `sportnest-api` → Settings → Environment Variables)
 
-| Key                    | Value                                              |
-| ---------------------- | -------------------------------------------------- |
-| `DATABASE_URL`         | `mongodb+srv://<user>:<pass>@<cluster>/sportnest`  |
-| `CLIENT_URL`           | `https://<your-client>.vercel.app`                 |
-| `BETTER_AUTH_URL`      | `https://<your-client>.vercel.app` *(client origin)* |
-| `BETTER_AUTH_SECRET`   | *a long random string*                             |
-| `JWT_SECRET`           | *a long random string*                             |
-| `GOOGLE_CLIENT_ID`     | *from Google Cloud Console*                        |
-| `GOOGLE_CLIENT_SECRET` | *from Google Cloud Console*                        |
+| Key                    | Value                                                   |
+| ---------------------- | ------------------------------------------------------- |
+| `DATABASE_URL`         | `mongodb+srv://<user>:<pass>@<cluster>/sportnest`       |
+| `CLIENT_URL`           | `https://sportnest-client-rho.vercel.app`               |
+| `BETTER_AUTH_URL`      | `https://sportnest-client-rho.vercel.app` *(client origin)* |
+| `BETTER_AUTH_SECRET`   | *a long random string*                                  |
+| `JWT_SECRET`           | *a long random string*                                  |
+| `GOOGLE_CLIENT_ID`     | *from Google Cloud Console*                             |
+| `GOOGLE_CLIENT_SECRET` | *from Google Cloud Console*                             |
 
 > 🔐 **Never commit real secret values** — set them only in the Vercel dashboard
 > (or a local `.env`, which is gitignored).
@@ -108,7 +106,7 @@ cross-site CORS).
 
 | Key                | Value                              |
 | ------------------ | ---------------------------------- |
-| `API_PROXY_TARGET` | `https://<your-api>.vercel.app`    |
+| `API_PROXY_TARGET` | `https://sportnest-api.vercel.app` |
 
 > ❌ Do **NOT** set `NEXT_PUBLIC_API_URL` on the client — an absolute value
 > bypasses the proxy and causes a CORS error on Google sign-in.
@@ -122,8 +120,8 @@ cross-site CORS).
 
 ### Verify after deploy
 
-- `GET https://<your-api>.vercel.app/` → `{ "success": true }`
-- `GET https://<your-api>.vercel.app/api/v1/sports/all` → facility list
+- `GET https://sportnest-api.vercel.app/` → `{ "success": true }`
+- `GET https://sportnest-api.vercel.app/api/v1/sports/all` → facility list
 - On the live client: register, email/password login, and private-route reload
   all work; "Continue with Google" redirects to Google.
 
