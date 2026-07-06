@@ -17,4 +17,16 @@ export const auth = betterAuth({
         },
     },
     trustedOrigins: [CLIENT_URL],
+    advanced: {
+        // The OAuth `state`/PKCE cookies must survive a cross-site redirect
+        // (frontend → backend → Google → backend). Without these attributes the
+        // callback can't read the state cookie and Better Auth throws
+        // `state_mismatch`. `partitioned` (CHIPS) keeps them working under
+        // modern third-party-cookie blocking.
+        defaultCookieAttributes: {
+            secure: true,
+            sameSite: 'none',
+            partitioned: true,
+        },
+    },
 });
