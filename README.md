@@ -6,7 +6,7 @@ using **Better Auth** for Google OAuth.
 
 ## 🔗 Live URL
 
-- **Live API:** https://your-sportnest-api.onrender.com _(update after deployment)_
+- **Live API:** https://your-sportnest-api.vercel.app _(update after deployment)_
 - **Client Repository:** ../sportnest-client
 
 ## 🎯 Purpose
@@ -60,28 +60,72 @@ GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
 ## 🔑 Google OAuth Setup
 
-Email/password works out of the box. To enable the **Continue with Google**
-button, configure a Google OAuth client:
+Email/password works out of the box. Because the frontend reverse-proxies
+`/api/*` to this API, Better Auth's public URL (`BETTER_AUTH_URL`) is the
+**client** origin, so Google's callback returns through the proxy and cookies
+stay first-party.
 
 1. Go to **Google Cloud Console → APIs & Services → Credentials**.
 2. Create an **OAuth 2.0 Client ID** (type: *Web application*).
-3. **Authorized JavaScript origins:**
-   - `http://localhost:5000`
-   - _(your deployed API URL)_
-4. **Authorized redirect URIs:**
-   - `http://localhost:5000/api/auth/callback/google`
-   - `https://<your-api-domain>/api/auth/callback/google`
-5. Copy the **Client ID** and **Client Secret** into `.env`
+3. **Authorized redirect URIs** (note: the **client** origin, not the API):
+   - `http://localhost:3000/api/auth/callback/google`
+   - `https://<your-client-domain>/api/auth/callback/google`
+4. Copy the **Client ID** and **Client Secret** into your env
    (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`).
+5. Set `BETTER_AUTH_URL` **and** `CLIENT_URL` to your client origin.
 
-Flow: client POSTs `/api/auth/sign-in/social` → Better Auth redirects to Google
-→ Google returns to `/api/auth/callback/google` → a session cookie is set →
-`requireAuth` recognises it (falling back from the JWT cookie), so Google users
-are treated exactly like email/password users.
+Flow: client POSTs `/api/auth/sign-in/social` (proxied) → Better Auth redirects
+to Google → Google returns to `<client>/api/auth/callback/google` (proxied) → a
+session cookie is set first-party → `requireAuth` recognises it (falling back
+from the JWT cookie), so Google users are treated exactly like email/password
+users.
 
-> **Production note:** for different client/API domains, cookies must be
-> `SameSite=None; Secure`. Set `NODE_ENV=production` (our JWT cookie already
-> switches) and serve both over HTTPS.
+## ☁️ Deployment & Redeployment (Vercel)
+
+The client and API deploy as **two Vercel projects**. The client reverse-proxies
+`/api/*` to this API, so they behave as one origin (first-party cookies, no
+cross-site CORS).
+
+### API environment variables (Vercel → `sportnest-api` → Settings → Environment Variables)
+
+| Key                    | Value                                              |
+| ---------------------- | -------------------------------------------------- |
+| `DATABASE_URL`         | `mongodb+srv://<user>:<pass>@<cluster>/sportnest`  |
+| `CLIENT_URL`           | `https://<your-client>.vercel.app`                 |
+| `BETTER_AUTH_URL`      | `https://<your-client>.vercel.app` *(client origin)* |
+| `BETTER_AUTH_SECRET`   | *a long random string*                             |
+| `JWT_SECRET`           | *a long random string*                             |
+| `GOOGLE_CLIENT_ID`     | *from Google Cloud Console*                        |
+| `GOOGLE_CLIENT_SECRET` | *from Google Cloud Console*                        |
+
+> 🔐 **Never commit real secret values** — set them only in the Vercel dashboard
+> (or a local `.env`, which is gitignored).
+> - ❌ Don't set `NODE_ENV` — Vercel sets it to `production` automatically.
+> - ❌ Don't set `PORT` — Vercel serverless ignores it.
+> - `CLIENT_URL` accepts a comma-separated list for multiple origins.
+
+### Client environment variables (Vercel → `sportnest-client`)
+
+| Key                | Value                              |
+| ------------------ | ---------------------------------- |
+| `API_PROXY_TARGET` | `https://<your-api>.vercel.app`    |
+
+> ❌ Do **NOT** set `NEXT_PUBLIC_API_URL` on the client — an absolute value
+> bypasses the proxy and causes a CORS error on Google sign-in.
+
+### Redeploy steps
+
+1. Update the env vars above in each project.
+2. **Push to GitHub** (auto-deploys) **or** dashboard →
+   **Deployments → ⋯ → Redeploy** (uncheck *Use existing Build Cache*).
+3. Redeploy **both** projects after changing shared origins.
+
+### Verify after deploy
+
+- `GET https://<your-api>.vercel.app/` → `{ "success": true }`
+- `GET https://<your-api>.vercel.app/api/v1/sports/all` → facility list
+- On the live client: register, email/password login, and private-route reload
+  all work; "Continue with Google" redirects to Google.
 
 ## 📚 API Endpoints
 
